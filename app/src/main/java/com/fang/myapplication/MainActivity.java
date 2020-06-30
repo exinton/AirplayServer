@@ -34,7 +34,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mSurfaceView = findViewById(R.id.surface);
         mAirPlayServer = new AirPlayServer();
         mRaopServer = new RaopServer(mSurfaceView);
-        mDNSNotify = new DNSNotify();
+        mDNSNotify = new DNSNotify(this.getApplicationContext());
     }
 
     @Override
@@ -62,14 +62,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (airplayPort == 0) {
             Toast.makeText(this.getApplicationContext(), "启动airplay服务失败", Toast.LENGTH_SHORT).show();
         } else {
-            mDNSNotify.registerAirplay(airplayPort);
+            //replace with android nds
+            //mDNSNotify.registerAirplay(airplayPort);
+            mDNSNotify.startMDNS(airplayPort);
         }
         mRaopServer.startServer();
         int raopPort = mRaopServer.getPort();
         if (raopPort == 0) {
             Toast.makeText(this.getApplicationContext(), "启动raop服务失败", Toast.LENGTH_SHORT).show();
         } else {
-            mDNSNotify.registerRaop(raopPort);
+            //mDNSNotify.registerRaop(raopPort);
+            mDNSNotify.startRaop(raopPort);
         }
         Log.d(TAG, "airplayPort = " + airplayPort + ", raopPort = " + raopPort);
     }

@@ -1,5 +1,8 @@
 package com.fang.myapplication;
 
+import android.content.Context;
+import android.net.nsd.NsdManager;
+import android.net.nsd.NsdServiceInfo;
 import android.util.Log;
 
 import com.apple.dnssd.DNSSD;
@@ -19,10 +22,12 @@ public class DNSNotify {
     private String mDeviceName;
     private int mDeviceTail = 1;
     private String mMacAddress;
+    Context mContext;
 
-    public DNSNotify() {
+    public DNSNotify(Context context) {
         mMacAddress = NetUtils.getLocalMacAddress();
         mDeviceName = "t";
+        mContext = context;
     }
 
     public void changeDeviceName() {
@@ -31,6 +36,50 @@ public class DNSNotify {
 
     public String getDeviceName() {
         return mDeviceName;
+    }
+
+    public void startMDNS(int port) {
+        //MICE, register MDNS
+        Log.i(TAG, "start registering mdns for airplay at port " + port + " for "+this.mDeviceName);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            NsdServiceInfo serviceInfo = new NsdServiceInfo();
+            serviceInfo.setServiceName(this.mDeviceName);
+            serviceInfo.setServiceType("_airplay._tcp");
+            serviceInfo.setPort(port);
+            serviceInfo.setAttribute("deviceid", "00:E0:DB:22:05:9C");
+            serviceInfo.setAttribute("features", "0x5A7FFFF7,0x1E");
+            serviceInfo.setAttribute("srcvers", "220.68");
+            serviceInfo.setAttribute("flags", "0x4");
+            serviceInfo.setAttribute("vv", "2");
+            serviceInfo.setAttribute("model", "AppleTV2,1");
+            serviceInfo.setAttribute("pw", "false");
+            serviceInfo.setAttribute("rhd", "5.6.0.0");
+            serviceInfo.setAttribute("pk", "b07727d6f6cd6e08b58ede525ec3cdeaa252ad9f683feb212ef8a205246554e7");
+            serviceInfo.setAttribute("pi", "2e388006-13ba-4041-9a67-25dd4a43d536");
+            NsdManager.RegistrationListener registrationListener = new NsdManager.RegistrationListener() {
+                @Override
+                public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                    Log.i(TAG, "onRegistrationFailed");
+                }
+
+                @Override
+                public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                    Log.i(TAG, "onUnregistrationFailed");
+                }
+
+                @Override
+                public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+                    Log.i(TAG, "onServiceRegistered");
+                }
+
+                @Override
+                public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+                    Log.i(TAG, "onServiceUnregistered");
+                }
+            };
+            NsdManager nsdManager = (NsdManager) mContext.getApplicationContext().getSystemService(Context.NSD_SERVICE);
+            nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+        }
     }
 
     public void registerAirplay(int port) {
@@ -48,6 +97,61 @@ public class DNSNotify {
         txtRecord.set("pi", "2e388006-13ba-4041-9a67-25dd4a43d536");
         this.mAirplayRegister = new Register(txtRecord, this.mDeviceName, "_airplay._tcp", "local.", "", port);
     }
+
+
+    public void startRaop(int port) {
+        //MICE, register MDNS
+        Log.i(TAG, "start Raop at port " + port + " for "+this.mDeviceName);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            NsdServiceInfo serviceInfo = new NsdServiceInfo();
+            serviceInfo.setServiceName("00E0DB22059C@"+this.mDeviceName);
+            serviceInfo.setServiceType("_raop._tcp");
+            serviceInfo.setPort(port);
+            serviceInfo.setAttribute("ch", "2");
+            serviceInfo.setAttribute("cn", "0,1,2,3");
+            serviceInfo.setAttribute("da", "true");
+            serviceInfo.setAttribute("et", "0,3,5");
+            serviceInfo.setAttribute("vv", "2");
+            serviceInfo.setAttribute("ft", "0x5A7FFFF7,0x1E");
+            serviceInfo.setAttribute("am", "AppleTV2,1");
+            serviceInfo.setAttribute("md", "0,1,2");
+            serviceInfo.setAttribute("rhd", "5.6.0.0");
+            serviceInfo.setAttribute("pw", "false");
+            serviceInfo.setAttribute("sr", "44100");
+            serviceInfo.setAttribute("ss", "16");
+            serviceInfo.setAttribute("sv", "false");
+            serviceInfo.setAttribute("tp", "UDP");
+            serviceInfo.setAttribute("txtvers", "1");
+            serviceInfo.setAttribute("sf", "0x4");
+            serviceInfo.setAttribute("vs", "220.68");
+            serviceInfo.setAttribute("vn", "65537");
+            serviceInfo.setAttribute("pk", "b07727d6f6cd6e08b58ede525ec3cdeaa252ad9f683feb212ef8a205246554e7");
+            NsdManager.RegistrationListener registrationListener = new NsdManager.RegistrationListener() {
+                @Override
+                public void onRegistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                    Log.i(TAG, "onRegistrationFailed");
+                }
+
+                @Override
+                public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
+                    Log.i(TAG, "onUnregistrationFailed");
+                }
+
+                @Override
+                public void onServiceRegistered(NsdServiceInfo serviceInfo) {
+                    Log.i(TAG, "onServiceRegistered");
+                }
+
+                @Override
+                public void onServiceUnregistered(NsdServiceInfo serviceInfo) {
+                    Log.i(TAG, "onServiceUnregistered");
+                }
+            };
+            NsdManager nsdManager = (NsdManager) mContext.getApplicationContext().getSystemService(Context.NSD_SERVICE);
+            nsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, registrationListener);
+        }
+    }
+
 
     public void registerRaop(int port) {
         Log.d(TAG, "registerRaop port = " + port);
